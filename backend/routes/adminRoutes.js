@@ -665,6 +665,37 @@ router.get(
     }
   }
 );
+router.get(
+  "/check-hr-permission",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT
+          r.name AS role,
+          p.name AS permission
+        FROM roles r
+        JOIN role_permissions rp
+          ON r.id = rp.role_id
+        JOIN permissions p
+          ON rp.permission_id = p.id
+        WHERE r.name = 'HR'
+        ORDER BY p.id
+      `);
 
+      res.json({
+        success: true,
+        results: result.rows
+      });
+    } catch (error) {
+      console.error("Permission check error:", error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
 
 module.exports = router;
